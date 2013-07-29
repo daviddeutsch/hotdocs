@@ -1,0 +1,35 @@
+<!doctype html>
+<html ng-app="hotdocs">
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.4.0/ui-bootstrap-tpls.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.0.1/angular-ui-router.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/showdown/0.3.1/showdown.min.js"></script>
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+	<title ng-bind="$state.current.name">Route</title>
+</head>
+<body>
+	<div class="container" ui-view ng-animate="{enter:'fade-enter'}"></div>
+</body>
+<script>
+	angular.module('hotdocs', ['ui.state', 'ui.compat', 'ui.bootstrap'])
+		.config(
+			['$stateProvider',
+			function ($stateProvider) {
+				$stateProvider
+					.state('page', {
+						url: '/{path:.*}',
+						templateUrl: 'page.html'
+					})
+
+			}])
+		.run(
+			['$rootScope', '$state', '$stateParams',
+			function ($rootScope, $state, $stateParams) {
+				$rootScope.$state = $state;
+				$rootScope.$stateParams = $stateParams;
+			}]);
+</script>
+</html>
