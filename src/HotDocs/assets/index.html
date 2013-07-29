@@ -2,34 +2,75 @@
 <html ng-app="hotdocs">
 <head>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.4.0/ui-bootstrap-tpls.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.0.1/angular-ui-router.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/showdown/0.3.1/showdown.min.js"></script>
-	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.4.0/ui-bootstrap-tpls.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.0.1/angular-ui-router.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/0.3.1/showdown.min.js"></script>
+	<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
 	<title ng-bind="$state.current.name">Route</title>
 </head>
 <body>
 	<div class="container" ui-view ng-animate="{enter:'fade-enter'}"></div>
 </body>
 <script>
-	angular.module('hotdocs', ['ui.state', 'ui.compat', 'ui.bootstrap'])
-		.config(
-			['$stateProvider',
-			function ($stateProvider) {
-				$stateProvider
-					.state('page', {
-						url: '/{path:.*}',
-						templateUrl: 'page.html'
-					})
+app = angular.module('hotdocs', ['ui.state', 'ui.compat', 'ui.bootstrap'])
+.config(
+	['$stateProvider', '$urlRouterProvider',
+	function ($stateProvider, $urlRouterProvider) {
+		$urlRouterProvider.otherwise("/start/welcome");
 
-			}])
-		.run(
-			['$rootScope', '$state', '$stateParams',
-			function ($rootScope, $state, $stateParams) {
-				$rootScope.$state = $state;
-				$rootScope.$stateParams = $stateParams;
-			}]);
+		$stateProvider
+		.state('page', {
+			url: '/{path:.*}',
+			views: {
+				'': {
+					templateUrl: 'page.markdown.html',
+					controller:
+						['$stateParams', '$scope', '$http',
+						function ($stateParams, $scope, $http) {
+							$http
+							.get($stateParams.path)
+							.success(function (result) {
+										$scope.markdown = result;
+									});
+						}
+						]
+				},
+				'menu': {
+					templateUrl: 'page.sidebar.html'
+				}
+			}
+		})
+	}
+	]
+);
+
+app.directive("markdown", function ($compile, $http) {
+	var converter = new Showdown.converter();
+	return {
+		restrict: 'E',
+		replace: true,
+		link: function (scope, element, attrs) {
+			if ("src" in attrs) {
+				$http.get(attrs.src).then(function(data) {
+					element.html(converter.makeHtml(data.data));
+				});
+			} else {
+				element.html(converter.makeHtml(element.text()));
+			}
+		}
+	};
+});
+
+app.run(
+	['$rootScope', '$state', '$stateParams',
+	function ($rootScope, $state, $stateParams) {
+		$rootScope.$state = $state;
+		$rootScope.$stateParams = $stateParams;
+	}
+	]
+);
 </script>
 </html>
